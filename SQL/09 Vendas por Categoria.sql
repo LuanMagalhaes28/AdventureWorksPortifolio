@@ -1,0 +1,22 @@
+USE AdventureWorksDW2022;
+
+WITH LUCRO_PRODUTO AS (
+	SELECT 
+		PC.EnglishProductCategoryName AS CATEGORIA,
+		SUM(FIS.TotalProductCost) AS TOTAL_CUSTO,
+		SUM(FIS.SalesAmount) AS TOTAL_VENDAS
+	FROM FactInternetSales FIS
+	INNER JOIN DimProduct P ON P.ProductKey = FIS.ProductKey
+	LEFT JOIN DimProductSubcategory PSC ON PSC.ProductSubcategoryKey = P.ProductSubcategoryKey
+	LEFT JOIN DimProductCategory PC ON PC.ProductCategoryKey = PSC.ProductCategoryKey
+	GROUP BY  PC.EnglishProductCategoryName
+)
+
+SELECT 
+	CATEGORIA,
+	FORMAT(TOTAL_VENDAS, 'N0') AS TOTAL_VENDAS,
+	FORMAT(TOTAL_CUSTO, 'N0') AS TOTAL_CUSTO,
+	FORMAT((TOTAL_VENDAS - TOTAL_CUSTO), 'N0') AS MARGEM_LUCRO,
+	FORMAT(((TOTAL_VENDAS - TOTAL_CUSTO) / TOTAL_VENDAS), 'P1') AS MARGEM_PERC
+FROM LUCRO_PRODUTO
+ORDER BY TOTAL_VENDAS, MARGEM_LUCRO DESC;
